@@ -1,0 +1,517 @@
+---
+import BaseHead from '../../../components/BaseHead.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { SITE_TITLE } from '../../../consts';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	
+	// Get all unique tags from all posts
+	const allTags = new Set();
+	posts.forEach(post => {
+		post.data.tags.forEach(tag => {
+			allTags.add(tag.toLowerCase());
+		});
+	});
+	
+	// Create a path for each tag
+	return Array.from(allTags).map(tag => {
+		const filteredPosts = posts.filter(post => 
+			post.data.tags.some(postTag => postTag.toLowerCase() === tag)
+		);
+		
+		// Find the original case version of this tag for display
+		const originalCaseTag = filteredPosts[0].data.tags.find(
+			t => t.toLowerCase() === tag
+		);
+		
+		return {
+			params: { tag },
+			props: { posts: filteredPosts, tagName: originalCaseTag },
+		};
+	});
+}
+
+const { tag } = Astro.params;
+const { posts, tagName } = Astro.props;
+
+// Group posts by category
+const postsByCategory = posts.reduce((acc: Record<string, typeof posts>, post) => {
+	const category = post.data.category;
+	if (!acc[category]) {
+		acc[category] = [];
+	}
+	acc[category].push(post);
+	return acc;
+}, {});
+
+// Sort posts by date overall
+const sortedPosts = posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Get related tags (tags that appear with this tag)
+const relatedTags = new Set();
+posts.forEach(post => {
+	post.data.tags.forEach(postTag => {
+		if (postTag.toLowerCase() !== tag) {
+			relatedTags.add(postTag);
+		}
+	});
+});
+
+---
+
+<html lang="en">
+	<head>
+		<BaseHead 
+			title={`${tagName} Stories | ${SITE_TITLE}`} 
+			description={`Learn through stories tagged with ${tagName}.`} 
+		/>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="tag-header">
+				<h1>#{tagName}</h1>
+				<p class="subtitle">Stories and tutorials tagged with {tagName}</p>
+			</section>
+			
+			<!-- Posts Section -->
+			<section class="posts-section">
+				<div class="tag-info">
+					<div class="tag-actions">
+						<a href="/blog/" class="back-link">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<line x1="19" y1="12" x2="5" y2="12"></line>
+								<polyline points="12 19 5 12 12 5"></polyline>
+							</svg>
+							All Articles
+						</a>
+						
+						<div class="post-count">
+							<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+								<polyline points="14 2 14 8 20 8"></polyline>
+								<line x1="16" y1="13" x2="8" y2="13"></line>
+								<line x1="16" y1="17" x2="8" y2="17"></line>
+								<polyline points="10 9 9 9 8 9"></polyline>
+							</svg>
+							<span>{sortedPosts.length} {sortedPosts.length === 1 ? 'Article' : 'Articles'}</span>
+						</div>
+					</div>
+					
+					{relatedTags.size > 0 && (
+						<div class="related-tags">
+							<h2>Related Tags</h2>
+							<div class="tag-list">
+								{Array.from(relatedTags).slice(0, 8).map(relTag => (
+									<a href={`/blog/tag/${String(relTag).toLowerCase()}`} class="tag-pill">
+										#{String(relTag)}
+									</a>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+				
+				<!-- Show posts by category -->
+				{Object.keys(postsByCategory).length > 0 && (
+					<div class="posts-by-category">
+						{Object.entries(postsByCategory).map(([category, categoryPosts]) => (
+							<div class="category-section">
+								<div class="category-header">
+									<h2>
+										<a href={`/blog/category/${category.toLowerCase()}`}>{category}</a>
+									</h2>
+									<a href={`/blog/category/${category.toLowerCase()}`} class="view-all">
+										View all {category} articles
+										<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+											<line x1="5" y1="12" x2="19" y2="12"></line>
+											<polyline points="12 5 19 12 12 19"></polyline>
+										</svg>
+									</a>
+								</div>
+								
+								<div class="posts-grid">
+									{categoryPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()).map(post => (
+										<article class="post-card">
+											{post.data.heroImage && (
+												<a href={`/blog/${post.slug}/`} class="card-image">
+													<img src={post.data.heroImage} alt="" />
+													<span class="card-difficulty">{post.data.difficulty}</span>
+												</a>
+											)}
+											<div class="card-content">
+												<h2 class="card-title">
+													<a href={`/blog/${post.slug}/`}>{post.data.title}</a>
+												</h2>
+												<p class="card-excerpt">{post.data.description}</p>
+												<div class="card-meta">
+													<span class="card-date">{new Date(post.data.pubDate).toLocaleDateString('en-us', {
+														year: 'numeric',
+														month: 'short',
+														day: 'numeric',
+													})}</span>
+													<span class="card-author">By {post.data.author}</span>
+												</div>
+												
+												{post.data.tags.length > 0 && (
+													<div class="card-tags">
+														{post.data.tags.slice(0, 3).map(cardTag => (
+															<a href={`/blog/tag/${cardTag.toLowerCase()}`} class={`tag-pill small ${cardTag.toLowerCase() === tag ? 'active' : ''}`}>
+																{cardTag}
+															</a>
+														))}
+													</div>
+												)}
+											</div>
+										</article>
+									))}
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+				
+				<!-- Empty State -->
+				{sortedPosts.length === 0 && (
+					<div class="empty-state">
+						<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="10"></circle>
+							<line x1="12" y1="8" x2="12" y2="12"></line>
+							<line x1="12" y1="16" x2="12" y2="16"></line>
+						</svg>
+						<h2>No stories found</h2>
+						<p>We don't have any stories with this tag yet. Check back later or explore other tags.</p>
+						<a href="/blog/" class="button primary">Browse All Stories</a>
+					</div>
+				)}
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
+	.tag-header {
+		background-color: #f8f9fa;
+		padding: 4rem 2rem;
+		text-align: center;
+		margin-bottom: 3rem;
+	}
+
+	.tag-header h1 {
+		font-size: 3rem;
+		margin: 0 0 1rem 0;
+	}
+
+	.subtitle {
+		font-size: 1.5rem;
+		color: rgb(var(--gray));
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	/* Posts Section */
+	.posts-section {
+		padding: 0 2rem;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	.tag-info {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: 3rem;
+		flex-wrap: wrap;
+		gap: 2rem;
+	}
+
+	.tag-actions {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.back-link {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--accent);
+		text-decoration: none;
+		font-weight: 500;
+		transition: color 0.2s ease;
+	}
+
+	.back-link:hover {
+		color: var(--accent-dark);
+	}
+
+	.post-count {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: rgb(var(--gray));
+		font-size: 0.9rem;
+	}
+
+	.related-tags h2 {
+		font-size: 1.2rem;
+		margin: 0 0 1rem 0;
+		color: rgb(var(--black));
+	}
+
+	.tag-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.tag-pill {
+		background-color: rgba(var(--gray-light), 0.5);
+		color: rgb(var(--gray-dark));
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		text-decoration: none;
+		font-size: 0.9rem;
+		transition: all 0.2s ease;
+	}
+
+	.tag-pill:hover {
+		background-color: var(--accent);
+		color: white;
+	}
+
+	.tag-pill.small {
+		padding: 0.25rem 0.75rem;
+		font-size: 0.8rem;
+	}
+
+	.tag-pill.active {
+		background-color: var(--accent);
+		color: white;
+	}
+
+	/* Category Sections */
+	.category-section {
+		margin-bottom: 4rem;
+	}
+
+	.category-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid rgba(var(--gray-light), 1);
+		padding-bottom: 0.5rem;
+	}
+
+	.category-header h2 {
+		font-size: 1.5rem;
+		margin: 0;
+	}
+
+	.category-header h2 a {
+		color: rgb(var(--black));
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.category-header h2 a:hover {
+		color: var(--accent);
+	}
+
+	.view-all {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--accent);
+		text-decoration: none;
+		font-size: 0.9rem;
+		font-weight: 500;
+		transition: all 0.2s ease;
+	}
+
+	.view-all:hover {
+		color: var(--accent-dark);
+	}
+
+	.view-all svg {
+		transition: transform 0.2s ease;
+	}
+
+	.view-all:hover svg {
+		transform: translateX(3px);
+	}
+
+	/* Posts Grid */
+	.posts-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+		gap: 2.5rem;
+	}
+
+	.post-card {
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: var(--box-shadow);
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		background: white;
+	}
+
+	.post-card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 10px 20px rgba(var(--gray), 30%);
+	}
+
+	.card-image {
+		display: block;
+		position: relative;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
+	}
+
+	.card-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.3s ease;
+	}
+
+	.card-image:hover img {
+		transform: scale(1.05);
+	}
+
+	.card-difficulty {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+		background-color: rgba(0, 0, 0, 0.6);
+		color: white;
+		padding: 0.25rem 0.75rem;
+		border-radius: 2rem;
+		font-size: 0.8rem;
+	}
+
+	.card-content {
+		padding: 1.5rem;
+	}
+
+	.card-title {
+		font-size: 1.3rem;
+		margin: 0 0 0.75rem;
+		line-height: 1.4;
+	}
+
+	.card-title a {
+		color: rgb(var(--black));
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.card-title a:hover {
+		color: var(--accent);
+	}
+
+	.card-excerpt {
+		margin: 0 0 1rem;
+		font-size: 0.95rem;
+		color: rgb(var(--gray));
+		line-height: 1.6;
+	}
+
+	.card-meta {
+		display: flex;
+		justify-content: space-between;
+		font-size: 0.85rem;
+		color: rgb(var(--gray));
+		margin-bottom: 1rem;
+	}
+
+	.card-tags {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	/* Empty State */
+	.empty-state {
+		text-align: center;
+		padding: 4rem 0;
+		color: rgb(var(--gray));
+	}
+
+	.empty-state svg {
+		margin-bottom: 1.5rem;
+		color: rgb(var(--gray));
+	}
+
+	.empty-state h2 {
+		font-size: 1.8rem;
+		color: rgb(var(--black));
+		margin: 0 0 1rem;
+	}
+
+	.empty-state p {
+		max-width: 500px;
+		margin: 0 auto 2rem;
+	}
+
+	.button {
+		display: inline-block;
+		padding: 0.75rem 1.5rem;
+		border-radius: 4px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.button.primary {
+		background-color: var(--accent);
+		color: white;
+	}
+
+	.button.primary:hover {
+		background-color: var(--accent-dark);
+		transform: translateY(-3px);
+	}
+
+	/* Responsive Adjustments */
+	@media (max-width: 768px) {
+		.tag-header h1 {
+			font-size: 2.5rem;
+		}
+
+		.subtitle {
+			font-size: 1.2rem;
+		}
+
+		.tag-info {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.tag-actions {
+			flex-wrap: wrap;
+			width: 100%;
+		}
+
+		.category-header {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+
+		.posts-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

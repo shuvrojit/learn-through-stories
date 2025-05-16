@@ -1,0 +1,376 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={`About | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="page-header">
+				<h1>About T-Stories</h1>
+				<p class="subtitle">Learning through immersive AI-generated storytelling</p>
+			</section>
+			
+			<section class="mission">
+				<div class="container">
+					<div class="section-content">
+						<h2>Our Mission</h2>
+						<p>
+							T-Stories is on a mission to transform how we learn new skills by harnessing 
+							the power of storytelling and artificial intelligence. We believe that stories 
+							are the most effective way to learn because they engage our emotions, provide 
+							context, and make abstract concepts concrete and memorable.
+						</p>
+						<p>
+							Our AI-generated long-form stories are crafted to teach real skills through 
+							narrative-driven tutorials that mirror human experience. Whether you're learning 
+							to code, design, write, or photograph, our stories place you in the shoes of 
+							someone going through the learning journey, complete with challenges, setbacks, 
+							and triumphs.
+						</p>
+						<blockquote>
+							"Tell me a fact and I'll learn. Tell me a truth and I'll believe. But tell me a story and it will live in my heart forever."
+							<footer>— Native American Proverb</footer>
+						</blockquote>
+					</div>
+					<div class="section-image">
+						<img src="/about-mission.html" alt="People learning together" loading="lazy" />
+					</div>
+				</div>
+			</section>
+			
+			<section class="approach alt-section">
+				<div class="container reverse">
+					<div class="section-content">
+						<h2>Our Approach</h2>
+						<p>
+							Each T-Stories tutorial is built on three key principles:
+						</p>
+						<ul class="principles">
+							<li>
+								<strong>Narrative Structure:</strong> Just as great novels have compelling characters and plot 
+								arcs, our tutorials follow real-world learning journeys with challenges, obstacles, 
+								and moments of breakthrough understanding.
+							</li>
+							<li>
+								<strong>Practical Application:</strong> We emphasize learning by doing. Our stories include 
+								practical examples, code snippets, and exercises that can be applied immediately.
+							</li>
+							<li>
+								<strong>Context and Relevance:</strong> Rather than teaching isolated techniques, we show 
+								how skills fit into broader workflows and real-world scenarios.
+							</li>
+						</ul>
+						<p>
+							By combining these elements with the capabilities of AI, we can create personalized, 
+							engaging learning experiences that adapt to different skill levels and learning styles.
+						</p>
+					</div>
+					<div class="section-image">
+						<img src="/about-approach.html" alt="Our unique storytelling approach" loading="lazy" />
+					</div>
+				</div>
+			</section>
+			
+			<section class="science">
+				<div class="container">
+					<div class="section-content">
+						<h2>The Science Behind Storytelling</h2>
+						<p>
+							Our approach isn't just engaging—it's backed by cognitive science. When we learn 
+							through stories, multiple areas of our brain activate simultaneously, creating 
+							stronger neural connections than fact-based learning alone.
+						</p>
+						<div class="stats-grid">
+							<div class="stat-card">
+								<h3>22x</h3>
+								<p>Stories can be up to 22 times more memorable than facts alone</p>
+							</div>
+							<div class="stat-card">
+								<h3>65%</h3>
+								<p>Higher retention rates when information is presented in narrative form</p>
+							</div>
+							<div class="stat-card">
+								<h3>98%</h3>
+								<p>Increase in emotional engagement when learning through storytelling</p>
+							</div>
+						</div>
+						<p>
+							When we experience a story, our brains produce oxytocin, which enhances our 
+							ability to empathize with the characters—in this case, someone on a learning 
+							journey similar to yours. This creates an emotional connection that makes 
+							the material more meaningful and therefore easier to retain.
+						</p>
+					</div>
+					<div class="section-image">
+						<img src="/about-science.html" alt="The science of storytelling" loading="lazy" />
+					</div>
+				</div>
+			</section>
+			
+			<section class="team alt-section">
+				<div class="container centered">
+					<h2>The Team Behind T-Stories</h2>
+					<p class="team-intro">
+						We're a diverse team of educators, content creators, engineers, and AI specialists united 
+						by our passion for transformative learning experiences. Together, we're developing new 
+						ways to make skill acquisition more engaging, effective, and enjoyable.
+					</p>
+					
+					<div class="cta-section">
+						<h3>Join Us on This Journey</h3>
+						<p>
+							We're constantly improving our platform and adding new stories across different skills 
+							and expertise levels. Explore our current collection, and check back often for new additions.
+						</p>
+						<div class="cta-buttons">
+							<a href="/blog/" class="button primary">Explore Our Stories</a>
+							<a href="/categories/" class="button secondary">Browse by Topic</a>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
+	.page-header {
+		background-color: #f8f9fa;
+		padding: 4rem 2rem;
+		text-align: center;
+		margin-bottom: 3rem;
+	}
+
+	.page-header h1 {
+		font-size: 3rem;
+		margin: 0 0 1rem 0;
+	}
+
+	.subtitle {
+		font-size: 1.5rem;
+		color: rgb(var(--gray));
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	section {
+		padding: 4rem 2rem;
+	}
+
+	.alt-section {
+		background-color: #f8f9fa;
+	}
+
+	.container {
+		max-width: 1200px;
+		margin: 0 auto;
+		display: flex;
+		gap: 4rem;
+		align-items: center;
+	}
+
+	.container.reverse {
+		flex-direction: row-reverse;
+	}
+
+	.container.centered {
+		flex-direction: column;
+		text-align: center;
+	}
+
+	.section-content {
+		flex: 1;
+	}
+
+	.section-image {
+		flex: 1;
+		display: flex;
+		justify-content: center;
+	}
+
+	.section-image img {
+		max-width: 100%;
+		height: auto;
+		border-radius: 8px;
+		box-shadow: var(--box-shadow);
+	}
+
+	h2 {
+		font-size: 2.5rem;
+		margin-bottom: 1.5rem;
+		color: rgb(var(--black));
+	}
+
+	h3 {
+		font-size: 1.8rem;
+		margin-bottom: 1rem;
+		color: rgb(var(--black));
+	}
+
+	p {
+		margin-bottom: 1.5rem;
+		font-size: 1.1rem;
+		line-height: 1.7;
+		color: rgb(var(--gray-dark));
+	}
+
+	blockquote {
+		font-size: 1.5rem;
+		font-style: italic;
+		padding: 1rem 2rem;
+		margin: 2rem 0;
+		border-left: 5px solid var(--accent);
+		background-color: rgba(var(--gray-light), 0.5);
+	}
+
+	blockquote footer {
+		font-size: 1rem;
+		text-align: right;
+		margin-top: 1rem;
+		font-style: normal;
+		color: rgb(var(--gray));
+	}
+
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2rem;
+		margin: 3rem 0;
+	}
+
+	.stat-card {
+		background-color: white;
+		padding: 2rem;
+		border-radius: 8px;
+		box-shadow: var(--box-shadow);
+		text-align: center;
+	}
+
+	.stat-card h3 {
+		font-size: 2.5rem;
+		color: var(--accent);
+		margin-bottom: 1rem;
+	}
+
+	.stat-card p {
+		margin: 0;
+		font-size: 1rem;
+	}
+
+	.principles {
+		list-style: none;
+		padding: 0;
+		margin: 1.5rem 0 2rem;
+	}
+
+	.principles li {
+		padding: 0.75rem 0;
+		position: relative;
+		padding-left: 2rem;
+		line-height: 1.6;
+	}
+
+	.principles li:before {
+		content: "→";
+		color: var(--accent);
+		font-weight: bold;
+		position: absolute;
+		left: 0;
+		top: 0.75rem;
+	}
+
+	.team-intro {
+		max-width: 800px;
+		margin: 0 auto 4rem;
+	}
+
+	.cta-section {
+		background-color: white;
+		padding: 3rem;
+		border-radius: 8px;
+		box-shadow: var(--box-shadow);
+		margin-top: 3rem;
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	.cta-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 1.5rem;
+		margin-top: 2rem;
+	}
+
+	.button {
+		display: inline-block;
+		padding: 0.75rem 1.5rem;
+		border-radius: 4px;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.button.primary {
+		background-color: var(--accent);
+		color: white;
+	}
+
+	.button.primary:hover {
+		background-color: var(--accent-dark);
+		transform: translateY(-3px);
+	}
+
+	.button.secondary {
+		background-color: white;
+		color: var(--accent);
+		border: 2px solid var(--accent);
+	}
+
+	.button.secondary:hover {
+		background-color: rgba(var(--gray-light), 0.5);
+		transform: translateY(-3px);
+	}
+
+	@media (max-width: 768px) {
+		.page-header h1 {
+			font-size: 2.5rem;
+		}
+
+		.subtitle {
+			font-size: 1.2rem;
+		}
+
+		.container {
+			flex-direction: column;
+			gap: 2rem;
+		}
+
+		.container.reverse {
+			flex-direction: column;
+		}
+
+		.stats-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.cta-buttons {
+			flex-direction: column;
+			gap: 1rem;
+		}
+	}
+</style>

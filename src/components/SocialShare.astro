@@ -1,0 +1,208 @@
+---
+export interface Props {
+  url: URL;
+  title: string;
+  description?: string;
+}
+
+const { url, title, description } = Astro.props;
+
+// Encode the URL and title for sharing
+const encodedUrl = encodeURIComponent(url.toString());
+const encodedTitle = encodeURIComponent(title);
+const encodedDescription = description ? encodeURIComponent(description) : '';
+
+// Generate sharing URLs
+const twitterUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+const emailUrl = `mailto:?subject=${encodedTitle}&body=${encodedDescription ? encodedDescription + '%0A%0A' : ''}${encodedUrl}`;
+---
+
+<div class="social-share">
+  <p class="share-label">Share this article:</p>
+  
+  <div class="share-buttons">
+    <!-- Twitter/X -->
+    <a href={twitterUrl} class="share-button twitter" target="_blank" rel="noopener noreferrer" aria-label="Share on Twitter">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+      </svg>
+      <span class="sr-only">Share on Twitter</span>
+    </a>
+    
+    <!-- Facebook -->
+    <a href={facebookUrl} class="share-button facebook" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+      </svg>
+      <span class="sr-only">Share on Facebook</span>
+    </a>
+    
+    <!-- LinkedIn -->
+    <a href={linkedinUrl} class="share-button linkedin" target="_blank" rel="noopener noreferrer" aria-label="Share on LinkedIn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+        <rect x="2" y="9" width="4" height="12"></rect>
+        <circle cx="4" cy="4" r="2"></circle>
+      </svg>
+      <span class="sr-only">Share on LinkedIn</span>
+    </a>
+    
+    <!-- Email -->
+    <a href={emailUrl} class="share-button email" aria-label="Share via Email">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <span class="sr-only">Share via Email</span>
+    </a>
+    
+    <!-- Copy Link -->
+    <button id="copy-link" class="share-button copy" aria-label="Copy link to clipboard">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+      </svg>
+      <span class="sr-only">Copy link</span>
+    </button>
+    <div id="copy-confirmation" class="copy-confirmation">
+      Link copied!
+    </div>
+  </div>
+</div>
+
+<style>
+  .social-share {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .share-label {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgb(var(--gray-dark));
+  }
+  
+  .share-buttons {
+    display: flex;
+    gap: 0.75rem;
+    position: relative;
+  }
+  
+  .share-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    color: white;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  
+  .share-button:hover {
+    transform: translateY(-3px);
+  }
+  
+  .share-button.twitter {
+    background-color: #1DA1F2;
+  }
+  
+  .share-button.facebook {
+    background-color: #4267B2;
+  }
+  
+  .share-button.linkedin {
+    background-color: #0077B5;
+  }
+  
+  .share-button.email {
+    background-color: #EA4335;
+  }
+  
+  .share-button.copy {
+    background-color: rgb(var(--gray));
+    border: none;
+    cursor: pointer;
+  }
+  
+  .share-button svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .copy-confirmation {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background-color: rgb(var(--black));
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .copy-confirmation::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 10px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgb(var(--black)) transparent transparent transparent;
+  }
+  
+  .copy-confirmation.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  @media (max-width: 500px) {
+    .social-share {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+</style>
+
+<script>
+  // Function to show and hide the copy confirmation
+  function showCopyConfirmation() {
+    const confirmation = document.getElementById('copy-confirmation');
+    confirmation.classList.add('visible');
+    
+    setTimeout(() => {
+      confirmation.classList.remove('visible');
+    }, 2000);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const copyButton = document.getElementById('copy-link');
+    
+    if (copyButton) {
+      copyButton.addEventListener('click', async () => {
+        try {
+          // Get current URL
+          const url = window.location.href;
+          
+          // Copy to clipboard
+          await navigator.clipboard.writeText(url);
+          
+          // Show confirmation
+          showCopyConfirmation();
+        } catch (err) {
+          console.error('Failed to copy URL: ', err);
+        }
+      });
+    }
+  });
+</script>

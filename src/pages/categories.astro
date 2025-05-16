@@ -1,0 +1,517 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { getCollection } from 'astro:content';
+
+// Get all blog posts
+const posts = await getCollection('blog');
+
+// Get all categories with post counts
+const categories = posts.reduce((acc, post) => {
+	const category = post.data.category;
+	if (!acc[category]) {
+		acc[category] = {
+			count: 0,
+			posts: [],
+		};
+	}
+	acc[category].count++;
+	acc[category].posts.push(post);
+	return acc;
+}, {});
+
+// Get featured post for each category (if any)
+Object.entries(categories).forEach(([category, data]) => {
+	const featuredPost = data.posts.find(post => post.data.featured);
+	if (featuredPost) {
+		categories[category].featuredPost = featuredPost;
+	} else {
+		// Otherwise use the most recent post
+		categories[category].featuredPost = data.posts.sort(
+			(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+		)[0];
+	}
+});
+
+// Get all tags
+const allTags = new Map();
+posts.forEach(post => {
+	post.data.tags.forEach(tag => {
+		if (!allTags.has(tag)) {
+			allTags.set(tag, {
+				count: 1,
+				categories: new Set([post.data.category]),
+			});
+		} else {
+			const tagData = allTags.get(tag);
+			tagData.count++;
+			tagData.categories.add(post.data.category);
+		}
+	});
+});
+
+// Convert tags to sorted array by count
+const topTags = Array.from(allTags.entries())
+	.sort((a, b) => b[1].count - a[1].count)
+	.slice(0, 24);
+
+// Preset category colors (for visual distinction)
+const categoryColors = {
+	Programming: {
+		bg: '#E3F2FD',
+		accent: '#2196F3',
+	},
+	Design: {
+		bg: '#E8F5E9',
+		accent: '#4CAF50',
+	},
+	Photography: {
+		bg: '#FFF3E0',
+		accent: '#FF9800',
+	},
+	Writing: {
+		bg: '#F3E5F5',
+		accent: '#9C27B0',
+	},
+	// Fallback for other categories
+	Default: {
+		bg: '#F5F5F5',
+		accent: '#607D8B',
+	},
+};
+
+// Get color for a category
+function getCategoryColor(category) {
+	return categoryColors[category] || categoryColors.Default;
+}
+---
+
+<html lang="en">
+	<head>
+		<BaseHead title={`Categories | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<style define:vars={{
+			// Define CSS variables for category colors
+			...Object.entries(categoryColors).reduce((acc, [category, colors]) => {
+				acc[`${category.toLowerCase()}-bg`] = colors.bg;
+				acc[`${category.toLowerCase()}-accent`] = colors.accent;
+				return acc;
+			}, {})
+		}}>
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<section class="page-header">
+				<h1>Explore Topics</h1>
+				<p class="subtitle">Discover stories and tutorials organized by category and tag</p>
+			</section>
+			
+			<!-- Categories Section -->
+			<section class="categories-section">
+				<h2 class="section-title">Categories</h2>
+				
+				<div class="categories-grid">
+					{Object.entries(categories).map(([category, data]) => {
+						const colors = getCategoryColor(category);
+						
+						return (
+							<a href={`/blog/category/${category.toLowerCase()}`} 
+								class="category-card"
+								style={`--category-bg: ${colors.bg}; --category-accent: ${colors.accent};`}
+							>
+								<div class="category-content">
+									<div class="category-info">
+										<h3 class="category-name">{category}</h3>
+										<span class="category-count">{data.count} {data.count === 1 ? 'Article' : 'Articles'}</span>
+										
+										{data.featuredPost && (
+											<div class="category-featured">
+												<span class="featured-label">Featured</span>
+												<p class="featured-title">{data.featuredPost.data.title}</p>
+											</div>
+										)}
+									</div>
+									
+									<div class="category-actions">
+										<span class="explore-link">
+											Explore Category
+											<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+												<line x1="5" y1="12" x2="19" y2="12"></line>
+												<polyline points="12 5 19 12 12 19"></polyline>
+											</svg>
+										</span>
+									</div>
+								</div>
+								
+								{data.featuredPost?.data.heroImage && (
+									<div class="category-image">
+										<img src={data.featuredPost.data.heroImage} alt={category} />
+									</div>
+								)}
+							</a>
+						);
+					})}
+				</div>
+			</section>
+			
+			<!-- Tags Section -->
+			<section class="tags-section">
+				<h2 class="section-title">Popular Tags</h2>
+				
+				<div class="tags-cloud">
+					{topTags.map(([tag, data]) => (
+						<a href={`/blog/tag/${tag.toLowerCase()}`} class="tag-item" data-count={data.count}>
+							#{tag}
+							<span class="tag-count">{data.count}</span>
+						</a>
+					))}
+				</div>
+			</section>
+			
+			<!-- Difficulty Levels Section -->
+			<section class="difficulty-section">
+				<h2 class="section-title">Browse by Difficulty</h2>
+				
+				<div class="difficulty-grid">
+					<a href="/blog/?difficulty=beginner" class="difficulty-card beginner">
+						<div class="difficulty-icon">🌱</div>
+						<h3>Beginner</h3>
+						<p>Start your journey with foundational stories requiring no prior knowledge.</p>
+						<span class="difficulty-link">View Beginner Stories</span>
+					</a>
+					
+					<a href="/blog/?difficulty=intermediate" class="difficulty-card intermediate">
+						<div class="difficulty-icon">🌿</div>
+						<h3>Intermediate</h3>
+						<p>Build on your skills with more complex topics and techniques.</p>
+						<span class="difficulty-link">View Intermediate Stories</span>
+					</a>
+					
+					<a href="/blog/?difficulty=advanced" class="difficulty-card advanced">
+						<div class="difficulty-icon">🌳</div>
+						<h3>Advanced</h3>
+						<p>Deep dive into expert-level content for seasoned learners.</p>
+						<span class="difficulty-link">View Advanced Stories</span>
+					</a>
+				</div>
+			</section>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	main {
+		width: 100%;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+
+	.page-header {
+		background-color: #f8f9fa;
+		padding: 4rem 2rem;
+		text-align: center;
+		margin-bottom: 3rem;
+	}
+
+	.page-header h1 {
+		font-size: 3rem;
+		margin: 0 0 1rem 0;
+	}
+
+	.subtitle {
+		font-size: 1.5rem;
+		color: rgb(var(--gray));
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.section-title {
+		font-size: 2rem;
+		text-align: center;
+		margin: 0 0 2rem 0;
+	}
+
+	/* Categories Section */
+	.categories-section {
+		padding: 2rem;
+		max-width: 1200px;
+		margin: 0 auto 4rem;
+	}
+
+	.categories-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+		gap: 2rem;
+	}
+
+	.category-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		background-color: var(--category-bg);
+		border-radius: 8px;
+		overflow: hidden;
+		text-decoration: none;
+		height: 240px;
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+	}
+
+	.category-card:hover {
+		transform: translateY(-5px);
+		box-shadow: var(--box-shadow);
+	}
+
+	.category-content {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		padding: 2rem;
+		z-index: 2;
+		height: 100%;
+	}
+
+	.category-image {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 50%;
+		height: 100%;
+		overflow: hidden;
+		opacity: 0.3;
+		transition: opacity 0.3s ease;
+	}
+
+	.category-card:hover .category-image {
+		opacity: 0.5;
+	}
+
+	.category-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.category-info {
+		max-width: 60%;
+	}
+
+	.category-name {
+		font-size: 1.8rem;
+		color: var(--category-accent);
+		margin: 0 0 0.5rem 0;
+	}
+
+	.category-count {
+		display: inline-block;
+		background-color: rgba(255, 255, 255, 0.5);
+		color: var(--category-accent);
+		padding: 0.25rem 0.75rem;
+		border-radius: 20px;
+		font-size: 0.9rem;
+		font-weight: 500;
+	}
+
+	.category-featured {
+		margin-top: 1.5rem;
+	}
+
+	.featured-label {
+		display: inline-block;
+		background-color: var(--category-accent);
+		color: white;
+		padding: 0.2rem 0.5rem;
+		border-radius: 4px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	.featured-title {
+		font-weight: 500;
+		margin: 0;
+		color: rgb(var(--black));
+		font-size: 1rem;
+	}
+
+	.explore-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--category-accent);
+		font-weight: 600;
+		font-size: 1.1rem;
+		transition: gap 0.3s ease;
+	}
+
+	.category-card:hover .explore-link {
+		gap: 0.75rem;
+	}
+
+	.explore-link svg {
+		transition: transform 0.3s ease;
+	}
+
+	.category-card:hover .explore-link svg {
+		transform: translateX(3px);
+	}
+
+	/* Tags Section */
+	.tags-section {
+		padding: 2rem;
+		background-color: #f8f9fa;
+		margin-bottom: 4rem;
+	}
+
+	.tags-cloud {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		justify-content: center;
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	.tag-item {
+		background-color: white;
+		color: rgb(var(--gray-dark));
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		text-decoration: none;
+		font-size: 1rem;
+		transition: all 0.2s ease;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+	}
+
+	.tag-item:hover {
+		background-color: var(--accent);
+		color: white;
+		transform: translateY(-3px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.tag-item:hover .tag-count {
+		background-color: rgba(255, 255, 255, 0.3);
+		color: white;
+	}
+
+	.tag-count {
+		background-color: rgba(var(--gray-light), 0.5);
+		color: rgb(var(--gray));
+		padding: 0.1rem 0.4rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		transition: all 0.2s ease;
+	}
+
+	/* Difficulty Section */
+	.difficulty-section {
+		padding: 2rem;
+		max-width: 1200px;
+		margin: 0 auto 4rem;
+	}
+
+	.difficulty-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 2rem;
+	}
+
+	.difficulty-card {
+		background-color: white;
+		border-radius: 8px;
+		overflow: hidden;
+		text-decoration: none;
+		padding: 2rem;
+		text-align: center;
+		box-shadow: var(--box-shadow);
+		transition: transform 0.3s ease;
+		border-top: 5px solid transparent;
+	}
+
+	.difficulty-card.beginner {
+		border-top-color: #4CAF50;
+	}
+
+	.difficulty-card.intermediate {
+		border-top-color: #2196F3;
+	}
+
+	.difficulty-card.advanced {
+		border-top-color: #9C27B0;
+	}
+
+	.difficulty-card:hover {
+		transform: translateY(-5px);
+	}
+
+	.difficulty-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+	}
+
+	.difficulty-card h3 {
+		font-size: 1.5rem;
+		margin: 0 0 1rem;
+		color: rgb(var(--black));
+	}
+
+	.difficulty-card p {
+		color: rgb(var(--gray));
+		margin: 0 0 1.5rem;
+		line-height: 1.6;
+	}
+
+	.difficulty-link {
+		color: var(--accent);
+		font-weight: 500;
+		position: relative;
+	}
+
+	.difficulty-link::after {
+		content: '';
+		position: absolute;
+		bottom: -2px;
+		left: 0;
+		width: 100%;
+		height: 2px;
+		background-color: var(--accent);
+		transform: scaleX(0);
+		transform-origin: right;
+		transition: transform 0.3s ease;
+	}
+
+	.difficulty-card:hover .difficulty-link::after {
+		transform: scaleX(1);
+		transform-origin: left;
+	}
+
+	/* Responsive Adjustments */
+	@media (max-width: 768px) {
+		.page-header h1 {
+			font-size: 2.5rem;
+		}
+
+		.subtitle {
+			font-size: 1.2rem;
+		}
+
+		.categories-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.category-image {
+			display: none;
+		}
+
+		.category-info {
+			max-width: 100%;
+		}
+	}
+</style>

@@ -1,0 +1,187 @@
+---
+import { SITE_TITLE } from '../consts';
+---
+
+<header>
+  <div class="header-content">
+    <a href="/" class="site-title">
+      <h2>{SITE_TITLE}</h2>
+    </a>
+    
+    <nav>
+      <div class="desktop-nav">
+        <a href="/">Home</a>
+        <a href="/blog/">Articles</a>
+        <a href="/categories/">Topics</a>
+        <a href="/about/">About</a>
+      </div>
+      
+      <button id="mobile-menu-toggle" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </nav>
+  </div>
+  
+  <div id="mobile-menu" class="mobile-nav">
+    <a href="/">Home</a>
+    <a href="/blog/">Articles</a>
+    <a href="/categories/">Topics</a>
+    <a href="/about/">About</a>
+  </div>
+</header>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    
+    if (mobileMenuToggle && mobileMenu) {
+      mobileMenuToggle.addEventListener('click', () => {
+        mobileMenu.classList.toggle('open');
+        
+        // Toggle aria-expanded attribute for accessibility
+        const isExpanded = mobileMenu.classList.contains('open');
+        mobileMenuToggle.setAttribute('aria-expanded', isExpanded.toString());
+      });
+    }
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (event) => {
+      if (
+        mobileMenu && 
+        mobileMenu.classList.contains('open') && 
+        mobileMenuToggle &&
+        event.target !== mobileMenuToggle && 
+        !mobileMenuToggle.contains(event.target as Node) &&
+        event.target !== mobileMenu && 
+        !mobileMenu.contains(event.target as Node)
+      ) {
+        mobileMenu.classList.remove('open');
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+</script>
+
+<style>
+  header {
+    width: 100%;
+    padding: 1rem;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(var(--gray), 25%);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .site-title {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .site-title h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  
+  nav {
+    display: flex;
+    align-items: center;
+  }
+  
+  .desktop-nav {
+    display: flex;
+    gap: 1.5rem;
+  }
+  
+  .desktop-nav a {
+    color: rgb(var(--gray-dark));
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .desktop-nav a:hover,
+  .desktop-nav a:focus {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  
+  #mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: rgb(var(--gray-dark));
+    cursor: pointer;
+    padding: 0.5rem;
+  }
+  
+  .mobile-nav {
+    display: none;
+    flex-direction: column;
+    background-color: #fff;
+    padding: 1rem;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 4px 8px rgba(var(--gray), 25%);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  }
+  
+  .mobile-nav.open {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .mobile-nav a {
+    color: rgb(var(--gray-dark));
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgb(var(--gray-light));
+    font-weight: 500;
+  }
+  
+  .mobile-nav a:last-child {
+    border-bottom: none;
+  }
+  
+  .mobile-nav a:hover,
+  .mobile-nav a:focus {
+    background-color: rgba(var(--gray-light), 50%);
+    color: var(--accent);
+  }
+  
+  @media (max-width: 768px) {
+    .desktop-nav {
+      display: none;
+    }
+    
+    #mobile-menu-toggle {
+      display: block;
+    }
+    
+    .mobile-nav {
+      display: flex;
+    }
+  }
+</style>
