@@ -7,77 +7,50 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 // Get all blog posts and sort them by publication date
 import { getCollection } from 'astro:content';
 
-interface BlogPost {
-	slug: string;
-	data: {
-		title: string;
-		description: string;
-		pubDate: string;
-		author: string;
-		category: string;
-		tags: string[];
-		heroImage?: string;
-		difficulty: string;
-	};
-}
+// Get all blog posts
+const allPosts = await getCollection('blog');
+console.log("DEBUG: Found", allPosts.length, "blog posts in collection");
 
-interface BlogProps {
-	posts: BlogPost[];
-	categories: Record<string, number>;
-	topTags: string[];
-}
+// Sort posts by publication date (newest first)
+const posts = allPosts
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+  .map(post => {
+    console.log(`Processing post with id: ${post.id}`);
+    return {
+      slug: post.id, // Use post.id directly to match what [...slug].astro expects
+      data: post.data
+    };
+  });
 
-export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	
-	return [
-		{
-			params: {},
-			props: { posts },
-		},
-	];
-}
+// Extract categories with post counts
+const categories = posts.reduce((acc: Record<string, number>, post) => {
+  const category = post.data.category;
+  if (!acc[category]) {
+    acc[category] = 0;
+  }
+  acc[category]++;
+  return acc;
+}, {});
 
-export async function getStaticProps(): Promise<{ props: BlogProps }> {
-	const posts = await getCollection('blog') as BlogPost[];
-	
-	// Get unique categories with post counts
-	const categories = posts.reduce((acc, post) => {
-		const category = post.data.category;
-		if (!acc[category]) {
-			acc[category] = 0;
-		}
-		acc[category]++;
-		return acc;
-	}, {} as Record<string, number>);
+// Extract tags and find most popular ones
+const allTagsMap = posts.reduce((acc: Record<string, number>, post) => {
+  post.data.tags.forEach(tag => {
+    if (!acc[tag]) {
+      acc[tag] = 0;
+    }
+    acc[tag]++;
+  });
+  return acc;
+}, {});
 
-	// Get all tags across all posts
-	const allTags = posts.reduce((acc, post) => {
-		post.data.tags.forEach(tag => {
-			if (!acc[tag]) {
-				acc[tag] = 0;
-			}
-			acc[tag]++;
-		});
-		return acc;
-	}, {} as Record<string, number>);
+const topTags = Object.entries(allTagsMap)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 10)
+  .map(([tag]) => tag);
 
-	// Get the top 10 most used tags
-	const topTags = Object.entries(allTags)
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 10)
-		.map(([tag]) => tag);
-
-	return {
-		props: {
-			posts,
-			categories,
-			topTags,
-		},
-	};
-}
-
-const { posts, categories, topTags } = Astro.props as BlogProps;
+console.log("DEBUG: Processed", posts.length, "posts for display");
+console.log("DEBUG: Found", Object.keys(categories).length, "categories");
+console.log("DEBUG: Found", topTags.length, "top tags");
 ---
 
 <html lang="en">
@@ -152,7 +125,7 @@ const { posts, categories, topTags } = Astro.props as BlogProps;
 								</h2>
 								<p class="card-excerpt">{post.data.description}</p>
 								<div class="card-meta">
-									<span class="card-date">{new Date(post.data.pubDate as string).toLocaleDateString('en-us', {
+									<span class="card-date">{new Date(post.data.pubDate).toLocaleDateString('en-us', {
 										year: 'numeric',
 										month: 'short',
 										day: 'numeric',
